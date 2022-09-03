@@ -64,7 +64,7 @@ u16 search(INODE *ip, char *name)
 
 main()
 { 
-    u16 index, iblk, ino;
+    u16 index, iblk, ino, offset;
     INODE *ip;
     GD *gp;
     DIR *dp;
@@ -86,12 +86,14 @@ main()
 
     dp = (DIR *)buf1;
     ino = search(ip, "boot");
-    getblk(ino, buf1);
+    iblk = (ino - 1) / 8;
+    offset = (ino - 1) % 8;
+    getblk(iblk, buf1);
     ip = (INODE *)buf1;
 
-    ino = search(ip, "mtx");
-    getblk(ino, buf1);
-    ip = (INODE *)buf1;
+    ino = search(ip[offset], "mtx");
+    getblk((ino - 1) / 8, buf1);
+    ip = ((INODE *)buf1)[(ino - 1) % 8];
 
 
 //2. setes(0x1000);  // MTX loading segment = 0x1000
