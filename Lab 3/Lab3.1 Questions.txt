@@ -1,0 +1,52 @@
+Benjamin Gaull
+11541568
+
+3.1)
+void timer_init()
+{
+  int i;
+  TIMER *tp;
+  kputs("timer_init()\n");
+
+  for (i=0; i<4; i++){
+    tp = &timer[i];
+    if (i==0) tp->base = (u32 *)0x101E2000; 
+    if (i==1) tp->base = (u32 *)0x101E2020; 
+    if (i==2) tp->base = (u32 *)0x101E3000; 
+    if (i==3) tp->base = (u32 *)0x101E3020;
+
+    *(tp->base+TLOAD) = 0x0;   // reset
+    *(tp->base+TVALUE)= 0x0;
+    *(tp->base+TRIS)  = 0x0;
+    *(tp->base+TMIS)  = 0x0;
+    *(tp->base+TCNTL) = 0x62; //011-0000=|En|Pe|IntE|-|scal=00|32-bit|0=wrap|
+    *(tp->base+TBGLOAD) = 0xE0000/60;
+
+    tp->tick = tp->hh = tp->mm = tp->ss = 0;
+    strcpy((char *)tp->clock, "00:00:00");
+  }
+}
+
+timer interrupts are enables when the INTEN bit is set to 1 in TCNTL register
+
+3.2)
+*(VIC_BASE + VIC_INTENABLE) |= (1<<4);  // timer0,1 at bit4 
+
+timer interrupts are routed to the CP when the corresponding bit is set to 1 in VIC_INTENABLE register
+
+3.3)
+timers are enabled in the timer_start() function when the EN bit is set to 1 in the TCTNL register for the timer
+if timer 0 is not enabled then it does not generate any interrupts
+
+3.4)
+interrupts are unmasked while returning to SVC mode by using 
+    MSR cpsr, #0x13
+
+
+3.5)
+    1)
+    copy_vectors() copies the interrutps vector table which contains the addresses to the interrupt handlers to address 0x0.
+    this is done because the CPU expects the vector table to be at this address.
+
+    2)
+    while(1) => vectortable.0x18 => irq_handler => IRQ_chandler() => timer_handler() => IRQ_chandler() => irq_handler => while(1)
