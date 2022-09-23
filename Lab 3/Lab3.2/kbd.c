@@ -72,6 +72,8 @@ void kbd_handler()
 		return;
 	}
 
+
+
 	if (lshift == 10) {
 		c = ltab[scode];
 	}
@@ -81,8 +83,24 @@ void kbd_handler()
 	}
   
   	kputs("kbd interrupt : ");
-  	if (c != '\r')
+  	if (lctrl == 1) {
+		switch (c)
+		{
+		case 'c':
+		case 'C':
+			kputs("Control-C key");
+			break;
+		case 'd':
+		case 'D':
+			kputc(0x4);
+			break;
+		default:
+			break;
+		}
+	}
+	else if (c != '\r') {
     	kputc(c);
+	}
   	kputs("\n");
 
   	kp->buf[kp->head++] = c;
