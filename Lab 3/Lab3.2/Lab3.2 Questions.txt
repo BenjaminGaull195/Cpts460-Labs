@@ -1,0 +1,9 @@
+(6) ==> (5)     Reason: Main calls kgetc()
+
+// kbd triggers IRQ interrupt
+(1) ==> (2)     Reason: vector table routes interrupt to irq_handler
+(2) ==> (3)     Reason: irq_handler saves processor state, calls IRQ_chandler()
+(3) ==> (4)     Reason: IRQ_chandler() registers kbd generated interrupt, calls kbd_handler()
+(4) ==> (3)     Reason: kbd_handler() processes interrupt, returns to IRQ_chandler()
+(3) ==> (2)     Reason: IRQ_chandler() returns to irq_handler
+(2) ==> (5)     Reason: irq_handler restores processor state, kgetc() resumes, reads character
