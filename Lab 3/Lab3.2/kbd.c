@@ -67,15 +67,15 @@ void kbd_handler()
 		return;
 	}
 
-	if (scode = 0x14) {
+	if (scode == 0x14) {
 		lctrl = 1;
 		return;
 	}
 
 
 
-	if (lshift == 10) {
-		c = ltab[scode];
+	if (lshift == 1) {
+		c = utab[scode];
 	}
 	else {
   		// map scode to ASCII in lowercase 

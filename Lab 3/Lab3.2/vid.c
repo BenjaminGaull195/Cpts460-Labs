@@ -78,6 +78,32 @@ int dchar(unsigned char c, int x, int y)
   }
 }
 
+int undchar(unsigned char c, int x, int y)
+{
+  int row, bit;
+  unsigned char *caddress, byte;
+
+  caddress = font + c*16;
+
+  for (row=0; row<16; row++){
+    byte = *(caddress + row);
+
+    for (bit=0; bit<8; bit++){
+      if (byte & (1<<bit))
+	  clrpix(x+bit, y+row);
+    }
+  }
+}
+
+int unkpchar(char c, int ro, int co)
+{
+   int x, y;
+   x = co*8;
+   y = ro*16;
+
+   undchar(c, x, y);
+}
+
 int scroll()
 {
   int i;
