@@ -7,59 +7,105 @@
 #define KISTA 0x10
 
 typedef volatile struct kbd{
-  char *base;
-  char buf[128];
-  int head, tail, data, room;
+  	char *base;
+  	char buf[128];
+  	int head, tail, data, room;
 }KBD;
 
 volatile KBD kbd;
 
 int release;       // key release flag
+int lshift;
+int lctrl;
 
 int kbd_init()
 {
-  KBD *kp = &kbd;
-  kp->base = (char *)0x10006000;
-  *(kp->base + KCNTL) = 0x10;    // bit4=Enable bit0=INT on
-  *(kp->base + KCLK)  = 8;       // ARM manual says clock=8
-  kp->head = kp->tail = 0;       // circular buffer char buf[128]
-  kp->data = 0; kp->room = 128;
+  	KBD *kp = &kbd;
+  	kp->base = (char *)0x10006000;
+  	*(kp->base + KCNTL) = 0x10;    // bit4=Enable bit0=INT on
+  	*(kp->base + KCLK)  = 8;       // ARM manual says clock=8
+  	kp->head = kp->tail = 0;       // circular buffer char buf[128]
+  	kp->data = 0; kp->room = 128;
 
-  release = 0;
+  	release = 0;
+  	lshift = 0;
+  	lctrl = 0;
 }
 
 void kbd_handler()
 {
-  u8 scode, c;
-  KBD *kp = &kbd;
+  	u8 scode, c;
+  	KBD *kp = &kbd;
 
-  color = YELLOW;
+  	color = YELLOW;
 
-  scode = *(kp->base + KDATA);   // get scan code of this interrpt
+  	scode = *(kp->base + KDATA);   // get scan code of this interrpt
 
-  kputs("kbd interrupt scancode = "); kprintx(scode);
+  	kputs("kbd interrupt scancode = "); kprintx(scode);
 
-  if (scode == 0xF0){  // it's key release 
-     release = 1;      // set release flag
-     return;
-  }
+  	if (scode == 0xF0){  // it's key release 
+    	release = 1;      // set release flag
+     	return;
+  	}
 
-  if (release == 1){   // scan code after 0xF0
-     release = 0;      // reset release flag
-     return;
-  }
+  	if (release == 1){   // scan code after 0xF0
+     	release = 0;      // reset release flag
+     	switch (scode) {
+		case 0x12:
+            lshift = 0;
+            break;
+        case 0x14:
+            lctrl = 0;
+            break;
+     	}
+     
+     	return;
+  	}
 
-  // map scode to ASCII in lowercase 
-  c = ltab[scode];
+	if (scode == 0x12) {
+		lshift = 1;
+		return;
+	}
 
-  kputs("kbd interrupt : ");
-  if (c != '\r')
-    kputc(c);
-  kputs("\n");
+	if (scode = 0x14) {
+		lctrl = 1;
+		return;
+	}
 
-  kp->buf[kp->head++] = c;
-  kp->head %= 128;
-  kp->data++; kp->room--;
+
+
+	if (lshift == 10) {
+		c = ltab[scode];
+	}
+	else {
+  		// map scode to ASCII in lowercase 
+  		c = ltab[scode];
+	}
+  
+  	kputs("kbd interrupt : ");
+  	if (lctrl == 1) {
+		switch (c)
+		{
+		case 'c':
+		case 'C':
+			kputs("Control-C key");
+			break;
+		case 'd':
+		case 'D':
+			kputc(0x4);
+			break;
+		default:
+			break;
+		}
+	}
+	else if (c != '\r') {
+    	kputc(c);
+	}
+  	kputs("\n");
+
+  	kp->buf[kp->head++] = c;
+  	kp->head %= 128;
+  	kp->data++; kp->room--;
 }
 
 int kgetc()

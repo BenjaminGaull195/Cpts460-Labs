@@ -49,7 +49,45 @@ void timer_handler(int n) {
 
     t->tick++;
 
-    // Use your LAB3.1 code to display a wall clock
+    if (t->tick == 30) {
+      putcursor();
+    }
+    
+
+    if (t->tick == 60){
+      t->tick = 0;
+      t->ss++;
+      if (t->ss == 60) {
+        t->ss = 0;
+        t->mm++;
+        if (t->mm == 60) {
+          t->mm = 0;
+          t->hh++;
+        }
+      }
+      
+      for (i = 0; i < 8; i++) {
+        unkpchar(t->clock[i], n, 70 + i);
+      }
+
+      t->clock[7] = '0' + (t->ss % 10); t->clock[6] = '0' + (t->ss / 10);
+      t->clock[4] = '0' + (t->mm % 10); t->clock[3] = '0' + (t->mm / 10);
+      t->clock[1] = '0' + (t->hh % 10); t->clock[0] = '0' + (t->hh / 10);
+      
+      color = n;
+      
+
+      for (i = 0; i < 8; i++) {
+        
+        kpchar(t->clock[i], n, 70 + i);
+      }
+      
+      
+      //kputs("timer interrupt\n");
+      color = YELLOW;
+      clrcursor();
+
+    }
 
     timer_clearInterrupt(n);  // must clear timer interrupt
 } 
