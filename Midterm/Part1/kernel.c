@@ -25,6 +25,10 @@ int procsize = sizeof(PROC);
 
 int body();
 
+void add_child(PROC* parent, PROC* proc);
+PROC* remove_child(PROC* parent, int pid);
+void move_child(PROC* proc);
+
 int init()
 {
   int i; 
@@ -79,6 +83,9 @@ int kfork(int func, int priority)
   p->ksp = &(p->kstack[SSIZE-14]);
   enqueue(&readyQueue, p);
 
+  //update proc family tree
+  add_child(running, p);
+
   printf("proc %d kforked a child %d\n", running->pid, p->pid);
   printList("readyQueue", readyQueue);
   return p->pid;
@@ -89,6 +96,9 @@ int scheduler()
   // kprintf("proc %d in scheduler ", running->pid);
   if (running->status == READY)
      enqueue(&readyQueue, running);
+  if (running->status == SLEEP) {
+     enqueue(&sleepList, running);
+  }
   running = dequeue(&readyQueue);
   // kprintf("next running = %d\n", running->pid);
   if (running->pid){
@@ -100,6 +110,7 @@ int scheduler()
 int body()
 {
   char c, cmd[64];
+  int status;
 
   kprintf("proc %d resume to body()\n", running->pid);
   while(1){
@@ -109,7 +120,7 @@ int body()
     printList("readyQueue", readyQueue);
     printsleepList(sleepList);
 	
-    printf("Enter a command [switch|kfork|exit] : ");
+    printf("Enter a command [switch|kfork|kwait|exit] : ");
     kgets(cmd);
     printf("\n");
     
@@ -117,8 +128,62 @@ int body()
        tswitch();
     else if (strcmp(cmd, "kfork")==0)
        kfork((int)body, 1);
+    else if (strcmp(cmd, "kwait")==0) {
+       printf("Zombie child found: %d status: %d",kwait(&status), status);
+    }
     else if (strcmp(cmd, "exit")==0){
-       kexit();
+      printf("exit code: ");
+      kgets(cmd);
+      kexit(atoi(cmd));
     }
   }
+}
+
+
+
+
+void add_child(PROC* parent, PROC* proc) {
+	proc->parent = parent;
+
+	if (parent->child == 0) {
+		parent->child = proc;
+		return;
+	}
+
+	PROC* temp = parent->child;
+	while (temp->sibling != 0) {
+		temp = temp->sibling;
+	}
+	temp->sibling = proc;
+}
+
+PROC* remove_child(PROC* parent, int pid) {
+	if (parent->child == 0) {
+		return 0;
+	}
+	
+	PROC* child = parent->child;
+	PROC* next;
+	if (child->pid == pid) {
+		parent->child = child->sibling;
+		return child;
+	}
+
+	next = child->sibling;
+	while (child->sibling) {
+		if (next->pid == pid) {
+			child->sibling = next->sibling;
+			return next;
+		}
+
+		child = child->sibling;
+	}
+
+}
+
+void move_child(PROC* proc) {
+	PROC* parent = proc->parent;
+	PROC* child = proc->child;
+	add_child(parent, child);
+	proc->child = 0;
 }
