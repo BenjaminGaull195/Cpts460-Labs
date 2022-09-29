@@ -115,7 +115,7 @@ int body()
   kprintf("proc %d resume to body()\n", running->pid);
   while(1){
     printf("-------- proc %d running -----------\n", running->pid);
-    
+    printf("-------- parent %d -----------------\n", running->ppid);
     printList("freeList  ", freeList);
     printList("readyQueue", readyQueue);
     printsleepList(sleepList);
