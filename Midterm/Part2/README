@@ -1,0 +1,7 @@
+t.bin is the solution of LAB4
+
+It implements the process BINARY family tree and supports 
+   ps, switch, fork, sleep, wakeup, exit, wait  
+commands
+
+Download t.bin, run q to test the commands.
