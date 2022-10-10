@@ -109,7 +109,7 @@ int body()
     printList("readyQueue", readyQueue);
     printsleepList(sleepList);
 	
-    printf("Enter a command [switch|kfork|exit] : ");
+    printf("Enter a command [switch|kfork|t|exit] : ");
     kgets(cmd);
     printf("\n");
     
@@ -117,6 +117,11 @@ int body()
        tswitch();
     else if (strcmp(cmd, "kfork")==0)
        kfork((int)body, 1);
+    else if (strcmp(cmd, "t")==0) {
+      printf("Enter time: ");
+      kgets(cmd);
+      t(atoi(cmd));
+    }
     else if (strcmp(cmd, "exit")==0){
        kexit();
     }

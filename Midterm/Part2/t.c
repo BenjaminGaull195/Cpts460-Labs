@@ -7,6 +7,7 @@ int color;
 #include "kbd.c"
 #include "exceptions.c"
 #include "kernel.c"
+#include "timer.c"
 #include "wait.c"
 
 void copy_vectors(void) {
@@ -25,6 +26,9 @@ void IRQ_handler()
     vicstatus = *(VIC_BASE + VIC_STATUS); // VIC_STATUS=0x10140000=status reg
     sicstatus = *(SIC_BASE + SIC_STATUS);  
 
+    if (vicstatus & 0x0010){   // timer0,1=bit4
+            timer_handler(0);
+    }
     if (vicstatus & (1 << 31)){
       if (sicstatus & (1 << 3)){
           kbd_handler();
@@ -46,6 +50,8 @@ int main()
    
    // allow KBD interrupts   
    *(VIC_BASE + VIC_INTENABLE) |= (1<<31); // allow VIC IRQ31
+   // enable VIC to route timer0,1 interrupts at line 4
+   *(VIC_BASE + VIC_INTENABLE) |= (1<<4);  // timer0,1 at bit4 
 
    // enable KBD IRQ 
    *(SIC_BASE + SIC_INTENABLE) |= (1<<3);  // KBD int=3 on SIC
