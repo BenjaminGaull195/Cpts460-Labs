@@ -120,7 +120,7 @@ int body()
     printList("readyQueue", readyQueue);
     printsleepList(sleepList);
 	
-    printf("Enter a command [switch|kfork|kwait|exit] : ");
+    printf("Enter a command [switch|kfork|kwait|ksleep|kwakeup|exit] : ");
     kgets(cmd);
     printf("\n");
     
@@ -135,6 +135,14 @@ int body()
       printf("exit code: ");
       kgets(cmd);
       kexit(atoi(cmd));
+    }
+    else if (strcmp(cmd, "ksleep") ==0) {
+      ksleep(running->pid);
+    }
+    else if (strcmp(cmd, "kwakeup")==0) {
+      printf("Enter Proc ID to Wake Up: ");
+      kgets(cmd);
+      kwakeup(atoi(cmd));
     }
   }
 }

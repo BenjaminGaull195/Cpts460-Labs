@@ -49,6 +49,7 @@ volatile TIMER timer[4];  // 4 timers; 2 timers per unit; at 0x00 and 0x20
 extern int kpchar(char, int, int);
 extern int unkpchar(char, int, int);
 extern int kputc(char);
+extern int strcpy(char *dest, char *src);
 
 int k;
 
@@ -57,7 +58,7 @@ void timer_init()
   int i;
   TIMER *tp;
   tqe* t;
-  kputs("timer_init()\n");
+  kprintf("timer_init()\n");
 
   for (i = 0; i < NPROC; i++) {
     t = &tqElements[i];
@@ -81,7 +82,16 @@ void timer_init()
     *(tp->base+TBGLOAD) = 0xE0000/60;
 
     tp->tick = tp->hh = tp->mm = tp->ss = 0;
-    strcpy((char *)tp->clock, "00:00:00");
+    //strcpy(tp->clock, "00:00:00");
+    //for some reason fails to compile do to undefined reference to memcpy
+    tp->clock[0] = '0';
+    tp->clock[1] = '0';
+    tp->clock[2] = ':';
+    tp->clock[3] = '0';
+    tp->clock[4] = '0';
+    tp->clock[5] = ':';
+    tp->clock[6] = '0';
+    tp->clock[7] = '0';
   }
 }
 

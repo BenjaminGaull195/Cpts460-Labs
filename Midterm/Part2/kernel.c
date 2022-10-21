@@ -25,6 +25,52 @@ int procsize = sizeof(PROC);
 
 int body();
 
+void add_child(PROC* parent, PROC* proc) {
+	proc->parent = parent;
+
+	if (parent->child == 0) {
+		parent->child = proc;
+		return;
+	}
+
+	PROC* temp = parent->child;
+	while (temp->sibling != 0) {
+		temp = temp->sibling;
+	}
+	temp->sibling = proc;
+}
+
+PROC* remove_child(PROC* parent, int pid) {
+	if (parent->child == 0) {
+		return 0;
+	}
+	
+	PROC* child = parent->child;
+	PROC* next;
+	if (child->pid == pid) {
+		parent->child = child->sibling;
+		return child;
+	}
+
+	next = child->sibling;
+	while (child->sibling) {
+		if (next->pid == pid) {
+			child->sibling = next->sibling;
+			return next;
+		}
+
+		child = child->sibling;
+	}
+
+}
+
+void move_child(PROC* proc) {
+	PROC* parent = proc->parent;
+	PROC* child = proc->child;
+	add_child(parent, child);
+	proc->child = 0;
+}
+
 int init()
 {
   int i; 
