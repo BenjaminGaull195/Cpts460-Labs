@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 ********************************************************************/
 
 int body(), goUmode();
+char* string = "My name is Benjamin Gaull\0";
 
 int kfork(char *filename)
 {
@@ -44,7 +45,7 @@ int kfork(char *filename)
       p->pgdir[i] = 0;
   // Assume 1MB Umode area at VA=2GB => only need one 2048_th entry
   p->pgdir[2048] = (int)(0x800000 + (p->pid-1)*0x100000 | 0xC3E);
-  //p->pgdir[2049] = (int)(0xF00000 + (p->pid-1)*0x100000 | 0xC3E);
+  p->pgdir[2049] = (int)(0xF00000 + (p->pid-1)*0x100000 | 0xC3E);
   //                                              0xC3E=|11|0|0001|1|1110|
   //                                                     AP   DOM1   CB10
   //                                                          AP=01 for checking
@@ -78,6 +79,8 @@ int kfork(char *filename)
     enqueue(&freeList, p);
     return -1;
   }
+
+  p->kstack[SSIZE-28] = string;
   
   p->usp = (int *)VA(0x100000); // p->usp = (int *)(0x80100000);
   p->kstack[SSIZE-1] = VA(0);   // p->kstack[SSIZE-1] = (int)0x80000000;

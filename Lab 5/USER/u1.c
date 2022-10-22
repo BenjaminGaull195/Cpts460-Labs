@@ -18,6 +18,8 @@ int main(char *s)
 
   pid = getpid();
   ppid = getppid();
+
+  printf(s);
   
   while(1){
     printf("This is process %d in Umode at %x parent=%d entry=%x\n",
