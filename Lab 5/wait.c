@@ -66,7 +66,7 @@ int kwakeup(int event)
 int kexit(int value)
 {
   printf("proc %d exit\n", running->pid);
-  move_child(running);
+  //move_child(running);
   running->exitCode = value;
   running->status = ZOMBIE;
 
