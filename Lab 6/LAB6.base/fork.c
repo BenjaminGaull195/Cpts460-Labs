@@ -99,11 +99,64 @@ PROC *kfork(char *filename)
 
 int fork()
 {
-  printf("fork(): under construction\n");
-  return -1;
+  //printf("fork(): under construction\n");
+  //return -1;
   
   // 1. p = getproc(&freeList);
   // 2. write code to build pgidr and pgtable for p as in kfork()
   // 3. fork code as in Chapter 7.7.6
+  int i;
+  char *PA, *CA;
+  int *ptable, pentry;
 
+  PROC *p = dequeue(&freeList);
+  if (p==0) {
+    kprintf("fork failed");
+    return (PROC *)0;
+  }
+  p->ppid = running->pid;
+  p->parent = running;
+  p->status = READY;
+  p->priority = 1;
+
+  // Build level-1 page table
+  p->pgdir = (int *)(0x600000 + (p->pid-1) * 0x4000);
+
+  ptable = p->pgdir;
+  for (i = 0; i < 4096; i++) {
+    ptable[i] = 0;
+  }
+
+  pentry = 0x412;
+  for (i = 0; i < 258; i++) {
+    ptable[i] = pentry;
+    pentry += 0x100000;
+  }
+
+  ptable[2048] = (0x800000 + (p->pid - 1) * 0x100000) | 0xc32;
+
+  for (i = 1; i < 29; i++) {
+    p->kstack[SSIZE - i] = 0;
+  }
+
+  p->kstack[SSIZE - 15] = (int)goUmode;
+  p->ksp = &(p->kstack[SSIZE - 28]);
+
+  // Copy Memory to forked proc
+  PA = (char *)(running->pgdir[2048] & 0xffff0000);
+  CA = (char *)(p->pgdir[2048] & 0xffff0000);
+  memcpy(CA, PA, 0x100000);
+
+  for (i = 1; i <= 14; i++) {
+    p->kstack[SSIZE - i] = running->kstack[SSIZE - i];
+  }
+
+  p->kstack[SSIZE - 14] = 0;
+  p->kstack[SSIZE - 15] = (int)goUmode;
+  p->ksp = &(p->kstack[SSIZE - 28]);
+  p->usp = running->usp;
+  p->cpsr = running->cpsr;
+
+  enqueue(&readyQueue, p);
+  return p->pid;
 }
