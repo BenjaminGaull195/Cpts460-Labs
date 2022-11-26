@@ -1,0 +1,11 @@
+#!/bin/bash
+
+./mku init
+./mku login
+./mku sh
+./mku ls
+./mku cat
+./mku more
+./mku grep
+./mku l2u
+./mku cp
